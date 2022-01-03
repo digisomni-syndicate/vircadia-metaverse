@@ -102,7 +102,7 @@ export class DatabaseService extends Service {
         return await super.remove(null, filter);
     }
 
-    async CreateData(tableName: string, data: any): Promise<any> {
+    async createData(tableName: string, data: any): Promise<any> {
         await this.getService(tableName);
         return await super.create(data);
     }

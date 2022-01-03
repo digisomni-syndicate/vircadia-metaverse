@@ -65,9 +65,11 @@ const metaverseServer = {
     place_current_timeout_minutes: 5,             // minutes until current place info is stale
     place_inactive_timeout_minutes: 60,           // minutes until place is considered inactive
     place_check_last_activity_seconds: (3 * 60) - 5,  // seconds between checks for Place lastActivity updates
-    email_verification_timeout_minutes: process.env.EMAIL_VERIFICATION_TIME,
+    email_verification_timeout_minutes: 1440,
     enable_account_email_verification: process.env.ENABLE_ACCOUNT_VERIFICATION ?? 'true',
     email_verification_email_body: '../verificationEmail.html',
+    email_verification_success_redirect: 'METAVERSE_SERVER_URL/verificationEmailSuccess.html',
+    email_verification_failure_redirect: 'METAVERSE_SERVER_URL/verificationEmailFailure.html?r=FAILURE_REASON'
 };
 
 /**
@@ -118,7 +120,7 @@ if (
 ) {
     getMyExternalIPAddress().then((ipAddress) => {
         if (IsNullOrEmpty(metaverse.metaverseServerUrl)) {
-            const newUrl = `http://${ipAddress}:${metaverseServer.listen_port.toString()}/`;
+            const newUrl = `http://${ipAddress}:${metaverseServer.listen_port.toString()}`;
             metaverse.metaverseServerUrl = newUrl;
         }
         if (IsNullOrEmpty(metaverse.defaultIceServerUrl)) {
@@ -133,8 +135,7 @@ const dbCollections = {
     accounts : 'accounts',
     places : 'places',
     tokens : 'tokens',
-    requests:'requests',
-    email:'email'
+    requests:'requests'
 };
 
 

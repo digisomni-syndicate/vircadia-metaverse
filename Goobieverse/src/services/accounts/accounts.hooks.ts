@@ -12,7 +12,7 @@ import { disallow } from 'feathers-hooks-common';
 export default {
     before: {
         all: [],
-        find: [authenticate('jwt')],
+        find: [iff(isHasAuthToken(),authenticate('jwt'))],
         get: [iff(isHasAuthToken(),authenticate('jwt')),checkAccessToAccount(config.dbCollections.accounts,[Perm.PUBLIC,Perm.OWNER,Perm.ADMIN])],
         create: [disallow()],
         update: [disallow()],

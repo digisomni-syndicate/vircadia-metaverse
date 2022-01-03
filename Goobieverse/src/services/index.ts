@@ -6,7 +6,6 @@ import friends from './friends/friends.service';
 import auth from './auth/auth.service';
 import email from './email/email.service';
 import connections from './connections/connections.service';
-
 import accounts from './accounts/accounts.service';
 
 export default function (app: Application): void {
@@ -16,5 +15,5 @@ export default function (app: Application): void {
     app.configure(profiles);
     app.configure(accounts);
     app.configure(email);
-    app.configure(connections);
+    app.configure(connections); 
 }

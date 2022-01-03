@@ -1,3 +1,4 @@
+import { RequestType } from './../../utils/sets/RequestType';
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import { MongoDBServiceOptions } from 'feathers-mongodb';
 import { Application } from '../../declarations';
@@ -11,6 +12,7 @@ import { SArray } from '../../utils/vTypes';
 import { sendEmail } from '../../utils/mail';
 import path from 'path';
 import fsPromises from 'fs/promises';
+import { RequestModel } from '../../interfaces/RequestModel';
 
 export class Users extends DatabaseService {
     app: Application;
@@ -48,8 +50,8 @@ export class Users extends DatabaseService {
                         const connections: string[] = [];
                         const whenCreated = new Date();
                         const accountIsActive = true;
-                        const accountWaitingVerification = false;
-                        const accounts = await this.CreateData(
+                        const accountWaitingVerification = config.metaverseServer.enable_account_email_verification === 'true';
+                        const accounts = await this.createData(
                             config.dbCollections.accounts,
                             {
                                 ...data,
@@ -69,61 +71,71 @@ export class Users extends DatabaseService {
                                 /^[a-zA-Z0-9.!#$%&'+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)$/;
                             if (emailRegexp.test(emailToValidate)) {
                                 try {
-                                    const adminAccountName =
-                                        config.metaverseServer[
-                                            'base_admin_account'
-                                        ];
-                                    if (
-                                        accounts.username === adminAccountName
-                                    ) {
-                                        if (IsNullOrEmpty(accounts.roles))
-                                            accounts.roles = [];
-                                        SArray.add(accounts.roles, Roles.ADMIN);
-                                    }
+                                    if(accountWaitingVerification) { 
+                                        const adminAccountName =
+                                            config.metaverseServer[
+                                                'base_admin_account'
+                                            ];
+                                        if (
+                                            accounts.username === adminAccountName
+                                        ) {
+                                            if (IsNullOrEmpty(accounts.roles))
+                                                accounts.roles = [];
+                                            SArray.add(accounts.roles, Roles.ADMIN);
+                                        }
+                                        const verifyCode = GenUUID();
+                                        const expirationMinutes = config.metaverseServer.email_verification_timeout_minutes;
+                                        const request : RequestModel = {
+                                            requestType: RequestType.VERIFYEMAIL,
+                                            requestingAccountId: accounts.id,
+                                            verificationCode:verifyCode,
+                                            expirationTime: new Date(Date.now() + 1000 * 60 * expirationMinutes)
+                                        };
+                                        
+                                        this.createData(config.dbCollections.requests,request);
 
-                                    const verificationURL =
-                                        config.metaverse['metaverseServerUrl'] +
-                                        `/api/v1/account/verify/email?a=${accounts.id}&v=${accounts.id}`;
-                                    const metaverseName =
-                                        config.metaverse['metaverseName'];
-                                    const shortMetaverseName =
-                                        config.metaverse['metaverseNickName'];
-                                    const verificationFile = path.join(
-                                        __dirname,
-                                        '../..',
-                                        config.metaverseServer[
-                                            'email_verification_email_body'
-                                        ]
-                                    );
-
-                                    let emailBody = await fsPromises.readFile(
-                                        verificationFile,
-                                        'utf-8'
-                                    );
-                                    emailBody = emailBody
-                                        .replace(
-                                            'VERIFICATION_URL',
-                                            verificationURL
-                                        )
-                                        .replace(
-                                            'METAVERSE_NAME',
-                                            metaverseName
-                                        )
-                                        .replace(
-                                            'SHORT_METAVERSE_NAME',
-                                            shortMetaverseName
+                                        const verificationURL =
+                                            config.metaverse.metaverseServerUrl +
+                                            `/api/v1/account/verify/email?a=${accounts.id}&v=${verifyCode}`;
+                                        const metaverseName =
+                                            config.metaverse.metaverseName;
+                                        const shortMetaverseName =
+                                            config.metaverse.metaverseNickName;
+                                        const verificationFile = path.join(
+                                            __dirname,
+                                            '../..',
+                                            config.metaverseServer.email_verification_email_body
                                         );
 
-                                    const email = {
-                                        from: 'khilan.odan@gmail.com',
-                                        to: accounts.email,
-                                        subject: `${shortMetaverseName} account verification`,
-                                        html: emailBody,
-                                    };
-                                    await sendEmail(
-                                        this.app,
-                                        email
-                                    );
+                                        let emailBody = await fsPromises.readFile(
+                                            verificationFile,
+                                            'utf-8'
+                                        );
+                                        emailBody = emailBody
+                                            .replace(
+                                                'VERIFICATION_URL',
+                                                verificationURL
+                                            )
+                                            .replace(
+                                                'METAVERSE_NAME',
+                                                metaverseName
+                                            )
+                                            .replace(
+                                                'SHORT_METAVERSE_NAME',
+                                                shortMetaverseName
+                                            );
+
+                                        const email = {
+                                            from: 'khilan.odan@gmail.com',
+                                            to: accounts.email,
+                                            subject: `${shortMetaverseName} account verification`,
+                                            html: emailBody,
+                                        };
+                                        await sendEmail(
+                                            this.app,
+                                            email
+                                        );
+                                    }
 
                                     return Promise.resolve({
                                         accountId: accounts.id,
