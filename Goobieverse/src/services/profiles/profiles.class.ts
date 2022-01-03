@@ -9,6 +9,7 @@ import { Application } from '../../declarations';
 import { buildAccountProfile } from '../../responsebuilder/accountsBuilder';
 import { IsNotNullOrEmpty } from '../../utils/Misc';
 import { messages } from '../../utils/messages';
+import { buildPaginationResponse,buildSimpleResponse } from '../../responsebuilder/responseBuilder';
 
 export class Profiles extends DatabaseService {
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
@@ -17,7 +18,8 @@ export class Profiles extends DatabaseService {
 
     async find(params?: Params): Promise<any> {
         const perPage = parseInt(params?.query?.per_page) || 10;
-        const skip = ((parseInt(params?.query?.page) || 1) - 1) * perPage;
+        const page = parseInt(params?.query?.page) || 1;
+        const skip = ((page) - 1) * perPage;
 
         const accountData = await this.findData(config.dbCollections.accounts, {
             query: {
@@ -30,13 +32,8 @@ export class Profiles extends DatabaseService {
             },
         });
 
-        let accounts: AccountModel[] = [];
-
-        if (accountData instanceof Array) {
-            accounts = accountData as Array<AccountModel>;
-        } else {
-            accounts = accountData.data as Array<AccountModel>;
-        }
+        const accounts: AccountModel[] = accountData.data as Array<AccountModel>;
+        
 
         const domainIds = (accounts as Array<AccountModel>)
             ?.map((item) => item.locationDomainId)
@@ -62,7 +59,7 @@ export class Profiles extends DatabaseService {
             }
             profiles.push(await buildAccountProfile(element, domainModel));
         });
-        return Promise.resolve({ profiles });
+        return Promise.resolve(buildPaginationResponse({ profiles },page,perPage,Math.ceil(accountData.total/perPage),accountData.total));
     }
 
     async get(id: Id): Promise<any> {
@@ -78,7 +75,7 @@ export class Profiles extends DatabaseService {
                 domainModel = domains[0];
             }
             const profile = await buildAccountProfile(account, domainModel);
-            return Promise.resolve({ profile });
+            return Promise.resolve(buildSimpleResponse({ profile }));
         } else {
             throw new Error(messages.common_messages_target_profile_notfound);
         }

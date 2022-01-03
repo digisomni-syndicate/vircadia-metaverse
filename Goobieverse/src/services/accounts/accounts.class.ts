@@ -1,6 +1,6 @@
 import { RequestType } from './../../utils/sets/RequestType';
 import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
-import { Params, Id, NullableId } from '@feathersjs/feathers';
+import { Params, Id, NullableId, Paginated } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import config from '../../appconfig';
@@ -16,6 +16,8 @@ import {
 } from '../../utils/Utils';
 import { messages } from '../../utils/messages';
 import { VKeyedCollection, SArray } from '../../utils/vTypes';
+import { buildPaginationResponse,buildSimpleResponse } from '../../responsebuilder/responseBuilder';
+
 
 export class Accounts extends DatabaseService {
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
@@ -44,7 +46,8 @@ export class Accounts extends DatabaseService {
         } else if (params?.user) {
             const loginUserId = params?.user?.id ?? '';
             const perPage = parseInt(params?.query?.per_page) || 10;
-            const skip = ((parseInt(params?.query?.page) || 1) - 1) * perPage;
+            const page = parseInt(params?.query?.page) || 1;
+            const skip = ((page) - 1) * perPage;
 
             // Passed the request, get the filter parameters from the query.
             // Here we pre-process the parameters to make the DB query construction quicker.
@@ -61,11 +64,7 @@ export class Accounts extends DatabaseService {
 
             const filterQuery: any = {};
 
-            if (
-                asAdmin &&
-                IsNotNullOrEmpty(params?.user) &&
-                isAdmin(params?.user as AccountModel)
-            ) {
+            if (asAdmin &&IsNotNullOrEmpty(params?.user) && isAdmin(params?.user as AccountModel) && IsNotNullOrEmpty(targetAccount) ) {
                 asAdmin = true;
             } else {
                 asAdmin = false;
@@ -118,19 +117,15 @@ export class Accounts extends DatabaseService {
             );
 
             let accountsList: AccountModel[] = [];
-
-            if (accountData instanceof Array) {
-                accountsList = accountData as Array<AccountModel>;
-            } else {
-                accountsList = accountData.data as Array<AccountModel>;
-            }
+ 
+            accountsList = accountData.data as Array<AccountModel>;            
 
             const accounts: Array<any> = [];
 
             (accountsList as Array<AccountModel>)?.forEach(async (element) => {
                 accounts.push(await buildAccountInfo(element));
             });
-            return Promise.resolve({ accounts });
+            return Promise.resolve(buildPaginationResponse({accounts:accounts},page,perPage,Math.ceil(accountData.total/perPage),accountData.total));
         } else {
             throw new Error(messages.common_messages_unauthorized);
         }
@@ -143,7 +138,7 @@ export class Accounts extends DatabaseService {
         );
         if (IsNotNullOrEmpty(objAccount)) {
             const account = await buildAccountInfo(objAccount);
-            return Promise.resolve({ account });
+            return Promise.resolve(buildSimpleResponse({ account }));
         } else {
             throw new Error(messages.common_messages_target_account_notfound);
         }

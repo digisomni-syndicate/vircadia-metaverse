@@ -53,12 +53,12 @@ export class DatabaseService extends Service {
     async findData(
         tableName: string,
         filter?: Filter<any>
-    ): Promise<Paginated<any> | any[]> {
+    ): Promise<Paginated<any>> {
         await this.getService(tableName);
         if (filter) {
-            return await super.find(filter);
+            return await super.find(filter) as Paginated<any>;
         } else {
-            return await super.find();
+            return await super.find() as Paginated<any>;
         }
     }
 
