@@ -8,12 +8,12 @@ import { disallow } from 'feathers-hooks-common';
 export default {
     before: {
         all: [],
-        find: [],
+        find: [authenticate('jwt')],
         get: [],
         create: [disallow()],
         update: [authenticate('jwt')],
         patch: [disallow()],
-        remove: []
+        remove: [disallow()]
     },
 
     after: {

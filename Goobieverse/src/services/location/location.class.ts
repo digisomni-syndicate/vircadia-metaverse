@@ -1,11 +1,9 @@
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
-import { Params, Id, NullableId } from '@feathersjs/feathers';
+import { NullableId } from '@feathersjs/feathers';
 import config from '../../appconfig';
-import { AccountModel } from '../../interfaces/AccountModel';
 import { buildLocationInfo } from '../../responsebuilder/placesBuilder';
-
 export class Location extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
@@ -57,5 +55,14 @@ export class Location extends DatabaseService {
         }
     }
   
+
+    async find(params?: any): Promise<any> {
+        if (params.user) {
+            const location = await buildLocationInfo(params.user);
+            return Promise.resolve({ location });
+        } else {
+            throw new Error('Not logged In');
+        }
+    }
   
 }
