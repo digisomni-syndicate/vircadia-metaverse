@@ -1,6 +1,6 @@
 export const Response = {
-    success : (data: any,additionalFields?:any) => {
-        return {status: 'success',data: data,...additionalFields};
+    success : (data: any) => {
+        return {status: 'success',...data};
     },
     error:(message: string,additionalFields?:any) => {
         return { status: 'failure', message: message,...additionalFields};

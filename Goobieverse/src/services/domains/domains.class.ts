@@ -7,8 +7,9 @@ import config from '../../appconfig';
 import { buildDomainInfoV1 } from '../../responsebuilder/domainsBuilder';
 import { isAdmin } from '../../utils/Utils';
 import { AccountModel } from '../../interfaces/AccountModel';
-import { IsNotNullOrEmpty } from '../../utils/Misc';
+import { IsNotNullOrEmpty, IsNullOrEmpty } from '../../utils/Misc';
 import { messages } from '../../utils/messages';
+import { buildPaginationResponse,buildSimpleResponse } from '../../responsebuilder/responseBuilder';
 
 export class Domains extends DatabaseService {
     
@@ -19,12 +20,13 @@ export class Domains extends DatabaseService {
     async find(params?: Params): Promise<any> {
         console.log(params);
         const perPage = parseInt(params?.query?.per_page) || 10;
-        const skip = ((parseInt(params?.query?.page) || 1) - 1) * perPage;
+        const page = parseInt(params?.query?.page) || 1;
+        const skip = ((page) - 1) * perPage;
         let asAdmin = params?.query?.asAdmin === 'true' ? true : false;
         const targetAccount = params?.query?.account ?? '';
         const loginUserId = params?.user?.id ?? '';
 
-        if ( asAdmin && IsNotNullOrEmpty(params?.user) && isAdmin(params?.user as AccountModel)) {
+        if ( asAdmin && IsNotNullOrEmpty(params?.user) && isAdmin(params?.user as AccountModel) && IsNullOrEmpty(targetAccount)) {
             asAdmin = true;
         } else {
             asAdmin = false;
@@ -47,18 +49,14 @@ export class Domains extends DatabaseService {
                 }
             });
         
-        let domainList : DomainModel[] =[];
-        if (domainsData instanceof Array) {
-            domainList = domainsData as Array<DomainModel>;
-        } else {
-            domainList = domainsData.data as Array<DomainModel>;
-        }
-
+        const domainList : DomainModel[] = domainsData.data;
+      
         const domains: Array<any> = [];
         domainList.forEach(async (element) => {
             domains.push(await buildDomainInfoV1(this,element));
         });
-        return Promise.resolve({ domains });
+        return Promise.resolve(buildPaginationResponse({domains:domains},page,perPage,Math.ceil(domainsData.total/perPage),domainsData.total));
+        
     }
 
     async get(id: NullableId): Promise<any> {
@@ -66,13 +64,13 @@ export class Domains extends DatabaseService {
             const objDomain = await this.getData(config.dbCollections.domains,id);
             if (IsNotNullOrEmpty(objDomain)) {
                 const domain = await buildDomainInfoV1(this,objDomain);
-                return Promise.resolve({ domain });
+                return Promise.resolve(buildSimpleResponse({ domain }));
             } 
         }
         throw new Error(messages.common_messages_target_domain_notfound);
     }
 
-    async patch(id: NullableId, data: any,params:Params): Promise<any> {
+    async patch(id: NullableId, data: any): Promise<any> {
         
         if(IsNotNullOrEmpty(id) &&  id){
             const domainData = data.domain;
