@@ -76,7 +76,7 @@ export class Users extends DatabaseService {
                     .replace('SHORT_METAVERSE_NAME', shortMetaverseName);
                 
                   const email = {
-                    from: 'khilan.odan@gmail.com',
+                    from: config.email.email_from,
                     to: accounts.email,
                     subject:  `${shortMetaverseName} account verification`,
                     html: emailBody,

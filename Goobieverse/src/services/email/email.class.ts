@@ -1,4 +1,3 @@
-import { Db } from 'mongodb';
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';

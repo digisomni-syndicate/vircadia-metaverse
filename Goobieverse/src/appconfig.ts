@@ -43,7 +43,8 @@ const email = {
   auth: {
     user: process.env.SMTP_USER ?? 'khilan.odan@gmail.com',
     pass: process.env.SMTP_PASS ?? 'blackhawk143',
-  }
+  },
+  email_from:process.env.SMTP_EMAIL_FROM
 };
 
 /**

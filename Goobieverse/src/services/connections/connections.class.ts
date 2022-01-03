@@ -15,7 +15,6 @@ export class Connections extends DatabaseService {
   async create(data: any, params?: any): Promise<any> {
     if (data && data.username) {
       const userData: any = await this.getData(config.dbCollections.accounts,  params.user.id);
-      
       userData.connections.push(data.username);
       const addUserData = await this.patchData(config.dbCollections.accounts,params.user.id,userData);
       if (isValidObject(addUserData)) {
@@ -25,6 +24,21 @@ export class Connections extends DatabaseService {
       }
     } else {
       return Response.error('Badly formed request');
+    }
+  }
+
+
+  async remove(id: string, params?: any): Promise<any> {
+    if (params.user.connections) {
+      const ParticularUserData: any = await this.findData(config.dbCollections.accounts, { query: { id: params.user.id } });
+      const connections = ParticularUserData.data[0].connections.filter(function (value:string) {
+        return value !== id;
+      });
+      ParticularUserData.data[0].connections = connections; 
+      const newParticularUserData = ParticularUserData.data[0];
+      await this.patchData(config.dbCollections.accounts,params.user.id,newParticularUserData);
+    } else {
+      throw new Error('Not logged in');
     }
   }
 

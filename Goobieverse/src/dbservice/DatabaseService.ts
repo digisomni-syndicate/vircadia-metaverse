@@ -75,7 +75,7 @@ export class DatabaseService extends Service {
     return await super.remove(id,filter);
   }
 
-  async deleteMultipleData(tableName:string,filter?:Filter<any>): Promise<any> {
+  async deleteMultipleData(tableName:string,filter:Filter<any>): Promise<any> {
     await (this.getService(tableName));
     return await super.remove(null,filter);
   }
