@@ -1,5 +1,5 @@
 import { DatabaseService } from './../../dbservice/DatabaseService';
-import { MongoDBServiceOptions } from 'feathers-mongodb';
+import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
 import config from '../../appconfig';
 import { Params } from '@feathersjs/feathers';
@@ -11,11 +11,12 @@ import { SArray } from '../../utils/vTypes';
 import { sendEmail } from '../../utils/mail';
 import path from 'path';
 import fsPromises from 'fs/promises';
+import { buildUserInfo } from '../../responsebuilder/accountsBuilder';
 
 export class Users extends DatabaseService {
     app: Application;
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor(options: Partial<MongoDBServiceOptions>, app: Application) {
+    constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
         this.app = app;
     }
@@ -161,14 +162,30 @@ export class Users extends DatabaseService {
     async find(params?: Params): Promise<any> {
         const perPage = parseInt(params?.query?.per_page) || 10;
         const skip = ((parseInt(params?.query?.page) || 1) - 1) * perPage;
-        const user = await this.findDataToArray(config.dbCollections.accounts, {
+        const users :any = await this.findDataToArray(config.dbCollections.accounts, {
             query: {
                 accountIsActive: true,
-                $select: ['username', 'accountId'],
                 $skip: skip,
                 $limit: perPage,
             },
         });
+
+        let userList:AccountModel[] = [];
+
+        if(users instanceof Array){
+            userList = users as Array<AccountModel>;
+        }else{
+            userList = users.data as Array<AccountModel>;  
+        }
+ 
+        
+        const user: Array<any> = [];
+        (userList as Array<AccountModel>)?.forEach(async (element) => {
+     
+            user.push(await buildUserInfo(element));
+        });
+
+
         return Promise.resolve({ user });
     }
 }

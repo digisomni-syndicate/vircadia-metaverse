@@ -1,4 +1,4 @@
-import {  MongoDBServiceOptions } from 'feathers-mongodb';
+import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import { Application } from '../../declarations';
 import config from '../../appconfig';
@@ -7,7 +7,7 @@ import { Response } from '../../utils/response';
 
 export class Friends extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor(options: Partial<MongoDBServiceOptions>, app: Application) {
+    constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
         this.app = app;
     }

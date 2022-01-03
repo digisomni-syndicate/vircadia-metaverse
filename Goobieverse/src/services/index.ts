@@ -9,6 +9,8 @@ import connections from './connections/connections.service';
 
 import accounts from './accounts/accounts.service';
 
+import location from './location/location.service';
+
 export default function (app: Application): void {
     app.configure(auth);
     app.configure(users);
@@ -17,4 +19,5 @@ export default function (app: Application): void {
     app.configure(accounts);
     app.configure(email);
     app.configure(connections);
+    app.configure(location);
 }

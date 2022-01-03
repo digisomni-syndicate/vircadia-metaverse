@@ -1,13 +1,16 @@
 import {  MongoDBServiceOptions } from 'feathers-mongodb';
 import { DatabaseService } from './../../dbservice/DatabaseService';
+import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
 import config from '../../appconfig';
 import { Response } from '../../utils/response';
 import { isValidObject } from '../../utils/Misc';
+import { AccountModel } from '../../interfaces/AccountModel';
+import { buildAccountInfo } from '../../responsebuilder/accountsBuilder';
 
 export class Connections extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor(options: Partial<MongoDBServiceOptions>, app: Application) {
+    constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
         this.app = app;
     }
@@ -39,6 +42,37 @@ export class Connections extends DatabaseService {
         } else {
             throw new Error('Not logged in');
         }
+    }
+    
+    async find(params?: any): Promise<any> {
+        const perPage = parseInt(params?.query?.per_page) || 10;
+        const skip = ((parseInt(params?.query?.page) || 1) - 1) * perPage;
+        const users :any = await this.findDataToArray(config.dbCollections.accounts, {
+            query: {
+                accountIsActive: true,
+                $select: ['username','connections'],
+                $skip: skip,
+                $limit: perPage,
+            },
+        });
+      
+        let userList:AccountModel[] = [];
+
+        if(users instanceof Array){
+            userList = users as Array<AccountModel>;
+        }else{
+            userList = users.data as Array<AccountModel>;  
+        }
+ 
+        
+        const user: Array<any> = [];
+        (userList as Array<AccountModel>)?.forEach(async (element) => {
+     
+            user.push(await buildAccountInfo(element));
+        });
+
+      
+        return Promise.resolve({ user });
     }
 
 
