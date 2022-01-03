@@ -1,3 +1,4 @@
+import { DatabaseService } from './../dbservice/DatabaseService';
 import { AccountModel } from './../interfaces/AccountModel';
 import { IsNotNullOrEmpty,IsNullOrEmpty } from '../utils/Misc';
 import { buildDomainInfo } from './domainsBuilder';
@@ -6,6 +7,7 @@ import { isOnline } from '../utils/Utils';
 import { PlaceModel } from '../interfaces/PlaceModel';
 import { Visibility } from '../utils/sets/Visibility';
 import { Maturity } from '../utils/sets/Maturity';
+import config from '../appconfig';
 // The returned location info has many options depending on whether
 //    the account has set location and/or has an associated domain.
 // Return a structure that represents the target account's domain
@@ -39,8 +41,8 @@ export async function buildLocationInfo(pAcct: AccountModel,aDomain?: DomainMode
 
 // Return an object with the formatted place information
 // Pass the PlaceModel and the place's domain if known.
-export async function buildPlaceInfo(pPlace: PlaceModel,pDomain?: DomainModel): Promise<any> {
-    const ret = await buildPlaceInfoSmall(pPlace, pDomain);
+export async function buildPlaceInfo(db:DatabaseService,pPlace: PlaceModel,pDomain?: DomainModel): Promise<any> {
+    const ret = await buildPlaceInfoSmall(db,pPlace, pDomain);
   
     // if the place points to a domain, add that information also
     if (IsNotNullOrEmpty(pDomain) && pDomain) {
@@ -74,7 +76,7 @@ function getAddressString(pPlace: PlaceModel,aDomain?: DomainModel): string {
 
 
 // Return the basic information block for a Place
-export async function buildPlaceInfoSmall(pPlace: PlaceModel,pDomain?: DomainModel): Promise<any> {
+export async function buildPlaceInfoSmall(db:DatabaseService,pPlace: PlaceModel,pDomain?: DomainModel): Promise<any> {
     const ret = {
         placeId: pPlace.id,
         id: pPlace.id,
@@ -86,7 +88,7 @@ export async function buildPlaceInfoSmall(pPlace: PlaceModel,pDomain?: DomainMod
         description: pPlace.description,
         maturity: pPlace.maturity ?? Maturity.UNRATED,
         tags: pPlace.tags,
-        managers: await getManagers(pPlace,pDomain),
+        managers: await getManagers(db,pPlace,pDomain),
         thumbnail: pPlace.thumbnail,
         images: pPlace.images,
         current_attendance: pPlace.currentAttendance ?? 0,
@@ -101,30 +103,27 @@ export async function buildPlaceInfoSmall(pPlace: PlaceModel,pDomain?: DomainMod
 }
   
 
-async function getManagers(pPlace: PlaceModel,aDomain?: DomainModel): Promise<string[]> {
+async function getManagers(db: DatabaseService,pPlace: PlaceModel,aDomain?: DomainModel): Promise<string[]> {
     if(IsNullOrEmpty(pPlace.managers)) {
         pPlace.managers = [];
-        //uncomment after complete Accounts Places api  
-    /*
-      if (aDomain) {
-        const aAccount = await Accounts.getAccountWithId(aDomain.sponsorAccountId);
-        if (aAccount) {
-          pPlace.managers = [ aAccount.username ];
+        if (aDomain) {
+            const aAccount = await db.getData(config.dbCollections.accounts,aDomain.sponsorAccountId);
+            if (aAccount) {
+                pPlace.managers = [ aAccount.username ];
+                await db.patchData(config.dbCollections.places,pPlace.id,{ 'managers': pPlace.managers });
+            }
         }
-      }
-      await Places.updateEntityFields(pPlace, { 'managers': pPlace.managers })
-      */
     }
     return pPlace.managers;
 }
 
 
 // Return an array of Places names that are associated with the passed domain
-export async function buildPlacesForDomain(pDomain: DomainModel): Promise<any[]> {
+export async function buildPlacesForDomain(db: DatabaseService,pDomain: DomainModel): Promise<any[]> {
     const ret: any[] = [];
-    //uncomment after complete Places api
-    /* for await (const aPlace of Places.enumerateAsync(new GenericFilter({ domainId: pDomain.id }))) {
-      ret.push(await buildPlaceInfoSmall(aPlace, pDomain));
-    }*/
+    const placeList:PlaceModel[] = await db.findDataToArray(config.dbCollections.places,{query:{domainId: pDomain.id}});
+    for await (const aPlace of placeList) {
+        ret.push(await buildPlaceInfoSmall(db,aPlace, pDomain));
+    }
     return ret;
 }

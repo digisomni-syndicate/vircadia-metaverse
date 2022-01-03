@@ -1,13 +1,11 @@
 import { Db } from 'mongodb';
-import { Service, MongoDBServiceOptions } from 'feathers-mongodb';
+import { DatabaseServiceOptions } from '../../dbservice/DatabaseServiceOptions';
+import { DatabaseService } from '../../dbservice/DatabaseService';
 import { Application } from '../../declarations'; 
-
-export class Auth extends Service {
-    constructor(options: Partial<MongoDBServiceOptions>, app: Application) {
-        super(options);
-        const client: Promise<Db> = app.get('mongoClient');
-        client.then((db) => {
-            this.Model = db.collection('accounts');
-        });
+import config from '../../appconfig';
+export class Auth extends DatabaseService {
+    constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
+        super(options,app);
+        this.getService(config.dbCollections.accounts);
     }
 }

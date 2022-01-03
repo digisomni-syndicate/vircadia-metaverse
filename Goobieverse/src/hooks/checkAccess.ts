@@ -176,7 +176,7 @@ export default (collection: string, pRequiredAccess: Perm[]) => {
             }
         } else {
             context.statusCode = HTTPStatusCode.NotFound;
-            throw new Error(messages.common_messages_target_account_notfound);
+            throw new Error(messages.common_messages_data_notfound);
         }
 
         if (!canAccess) {

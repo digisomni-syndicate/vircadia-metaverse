@@ -8,6 +8,8 @@ import email from './email/email.service';
 import connections from './connections/connections.service';
 import accounts from './accounts/accounts.service';
 
+import domains from './domains/domains.service';
+
 export default function (app: Application): void {
     app.configure(auth);
     app.configure(users);
@@ -15,5 +17,6 @@ export default function (app: Application): void {
     app.configure(profiles);
     app.configure(accounts);
     app.configure(email);
-    app.configure(connections); 
+    app.configure(connections);
+    app.configure(domains);
 }

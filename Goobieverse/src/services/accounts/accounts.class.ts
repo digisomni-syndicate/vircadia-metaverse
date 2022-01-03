@@ -254,6 +254,7 @@ export class Accounts extends DatabaseService {
                 );
             }
         } else {
+            
             throw new Error(messages.common_messages_target_account_notfound);
         }
     }

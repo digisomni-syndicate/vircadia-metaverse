@@ -1,3 +1,4 @@
+import { DatabaseService } from './../dbservice/DatabaseService';
 import { Visibility } from '../utils/sets/Visibility';
 import { DomainModel } from '../interfaces/DomainModel';
 import { createSimplifiedPublicKey } from '../utils/Utils';
@@ -26,7 +27,7 @@ export async function buildDomainInfo(pDomain: DomainModel): Promise<any> {
 }
   
 // Return a structure with the usual domain information.
-export async function buildDomainInfoV1(pDomain: DomainModel): Promise<any> {
+export async function buildDomainInfoV1(db: DatabaseService,pDomain: DomainModel): Promise<any> {
     return {
         domainId: pDomain.id,
         id: pDomain.id, // legacy
@@ -35,7 +36,7 @@ export async function buildDomainInfoV1(pDomain: DomainModel): Promise<any> {
         world_name: pDomain.name, // legacy
         label: pDomain.name, // legacy
         public_key: pDomain.publicKey? createSimplifiedPublicKey(pDomain.publicKey): undefined,
-        owner_places: await buildPlacesForDomain(pDomain),
+        owner_places: await buildPlacesForDomain(db,pDomain),
         sponsor_account_id: pDomain.sponsorAccountId,
         ice_server_address: pDomain.iceServerAddr,
         version: pDomain.version,
