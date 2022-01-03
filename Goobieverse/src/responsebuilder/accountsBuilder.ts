@@ -4,13 +4,13 @@ import { buildLocationInfo } from './placesBuilder';
 import { VKeyedCollection } from '../utils/vTypes';
 import { isAdmin, isEnabled, createSimplifiedPublicKey } from '../utils/Utils';
 // Return the limited "user" info.. used by /api/v1/users
-export async function buildUserInfo(pAccount: AccountModel): Promise<any> {
+export async function buildUserInfo(pAccount: AccountModel,domain?:DomainModel): Promise<any> {
     return {
         accountId: pAccount.id,
         id: pAccount.id,
         username: pAccount.username,
         images: await buildImageInfo(pAccount),
-        location: await buildLocationInfo(pAccount),
+        location: await buildLocationInfo(pAccount,domain),
     };
 }
 
@@ -26,7 +26,8 @@ export async function buildImageInfo(pAccount: AccountModel): Promise<any> {
 // Return the block of account information.
 // Used by several of the requests to return the complete account information.
 export async function buildAccountInfo(
-    pAccount: AccountModel
+    pAccount: AccountModel,
+    domain?:DomainModel
 ): Promise<any> {
     return {
         accountId: pAccount.id,
@@ -44,7 +45,7 @@ export async function buildAccountInfo(
             thumbnail: pAccount.imagesThumbnail,
         },
         profile_detail: pAccount.profileDetail,
-        location: await buildLocationInfo(pAccount),
+        location: await buildLocationInfo(pAccount,domain),
         friends: pAccount.friends,
         connections: pAccount.connections,
         when_account_created: pAccount.whenCreated?.toISOString(),

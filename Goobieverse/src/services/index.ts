@@ -6,10 +6,10 @@ import friends from './friends/friends.service';
 import auth from './auth/auth.service';
 import email from './email/email.service';
 import connections from './connections/connections.service';
-
 import accounts from './accounts/accounts.service';
 
 import location from './location/location.service';
+import domains from './domains/domains.service';
 
 export default function (app: Application): void {
     app.configure(auth);
@@ -20,4 +20,5 @@ export default function (app: Application): void {
     app.configure(email);
     app.configure(connections);
     app.configure(location);
+    app.configure(domains);
 }

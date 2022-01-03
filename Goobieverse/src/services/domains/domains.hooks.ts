@@ -1,23 +1,21 @@
+import { HooksObject } from '@feathersjs/feathers';
 import * as feathersAuthentication from '@feathersjs/authentication';
 const { authenticate } = feathersAuthentication.hooks;
 import requestSuccess from '../../hooks/requestSuccess';
 import  requestFail  from '../../hooks/requestFail';
 import checkAccessToAccount from '../../hooks/checkAccess';
 import config from '../../appconfig';
-import {Perm} from '../../utils/Perm';
-import isHasAuthToken from '../../hooks/isHasAuthToken';
-import { iff } from 'feathers-hooks-common';
-import { disallow } from 'feathers-hooks-common';
+import { Perm } from '../../utils/Perm';
 
 export default {
     before: {
-        all: [],
-        find: [iff(isHasAuthToken(),authenticate('jwt'))],
-        get: [iff(isHasAuthToken(),authenticate('jwt')),checkAccessToAccount(config.dbCollections.accounts,[Perm.PUBLIC,Perm.OWNER,Perm.ADMIN])],
-        create: [disallow()],
-        update: [disallow()],
-        patch: [authenticate('jwt')],
-        remove: [authenticate('jwt'),checkAccessToAccount(config.dbCollections.accounts,[Perm.ADMIN])]
+        all: [authenticate('jwt')],
+        find: [],
+        get: [],
+        create: [],
+        update: [checkAccessToAccount(config.dbCollections.domains,[Perm.MANAGER,Perm.ADMIN])],
+        patch: [checkAccessToAccount(config.dbCollections.domains,[Perm.MANAGER,Perm.ADMIN])],
+        remove: [checkAccessToAccount(config.dbCollections.domains,[Perm.SPONSOR,Perm.ADMIN])],
     },
 
     after: {
@@ -27,7 +25,7 @@ export default {
         create: [],
         update: [],
         patch: [],
-        remove: []
+        remove: [],
     },
 
     error: {
@@ -37,6 +35,6 @@ export default {
         create: [],
         update: [],
         patch: [],
-        remove: []
-    }
+        remove: [],
+    },
 };

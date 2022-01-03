@@ -10,5 +10,10 @@ export const messages = {
     common_messages_target_account_notfound:'Target account not found',
     common_messages_user_email_link_error:'email already exists for another account',
     common_messages_unauthorized:'Unauthorized',
-    common_messages_email_validation_error:'Invalid email address'
+    common_messages_email_validation_error:'Invalid email address',
+    common_messages_error_missing_verification_pending_request:'Not verified. No pending verification request',
+    common_messages_error_verify_request_expired:'Not verified. Request expired',
+    common_messages_target_domain_notfound:'DomainId does not match a domain',
+    common_messages_data_notfound:'Data not found',
+  
 };
