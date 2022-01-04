@@ -1,6 +1,6 @@
 import { RequestType } from './../../utils/sets/RequestType';
 import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
-import { Params, Id, NullableId, Paginated } from '@feathersjs/feathers';
+import { Params, Id, NullableId } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import config from '../../appconfig';

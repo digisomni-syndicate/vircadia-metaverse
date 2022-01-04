@@ -1,4 +1,4 @@
-import { Response } from './../utils/response';
+
 interface PaginationResponse {
     data:any;
     current_page:any;

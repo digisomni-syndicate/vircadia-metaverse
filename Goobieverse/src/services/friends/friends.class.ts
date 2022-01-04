@@ -3,7 +3,7 @@ import { DatabaseService } from './../../dbservice/DatabaseService';
 import { Application } from '../../declarations';
 import config from '../../appconfig';
 import { Response } from '../../utils/response'; 
-import { buildSimpleResponse,buildPaginationResponse } from '../../responsebuilder/responseBuilder';
+import { buildSimpleResponse } from '../../responsebuilder/responseBuilder';
 
 export class Friends extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars

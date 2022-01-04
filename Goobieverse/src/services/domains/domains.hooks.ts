@@ -1,4 +1,3 @@
-import { HooksObject } from '@feathersjs/feathers';
 import * as feathersAuthentication from '@feathersjs/authentication';
 const { authenticate } = feathersAuthentication.hooks;
 import requestSuccess from '../../hooks/requestSuccess';
