@@ -1,4 +1,3 @@
-import {  MongoDBServiceOptions } from 'feathers-mongodb';
 import { DatabaseService } from './../../dbservice/DatabaseService';
 import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
@@ -7,6 +6,7 @@ import { Response } from '../../utils/response';
 import { isValidObject } from '../../utils/Misc';
 import { AccountModel } from '../../interfaces/AccountModel';
 import { buildAccountInfo } from '../../responsebuilder/accountsBuilder';
+import { buildPaginationResponse } from '../../responsebuilder/responseBuilder';
 
 export class Connections extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,6 +39,7 @@ export class Connections extends DatabaseService {
             ParticularUserData.data[0].connections = connections; 
             const newParticularUserData = ParticularUserData.data[0];
             await this.patchData(config.dbCollections.accounts,params.user.id,newParticularUserData);
+            return Promise.resolve({});
         } else {
             throw new Error('Not logged in');
         }
@@ -46,8 +47,10 @@ export class Connections extends DatabaseService {
     
     async find(params?: any): Promise<any> {
         const perPage = parseInt(params?.query?.per_page) || 10;
-        const skip = ((parseInt(params?.query?.page) || 1) - 1) * perPage;
-        const users :any = await this.findDataToArray(config.dbCollections.accounts, {
+        const page = parseInt(params?.query?.page) || 1;
+        const skip = ((page) - 1) * perPage;
+
+        const usersData = await this.findData(config.dbCollections.accounts, {
             query: {
                 accountIsActive: true,
                 $select: ['username','connections'],
@@ -56,23 +59,15 @@ export class Connections extends DatabaseService {
             },
         });
       
-        let userList:AccountModel[] = [];
-
-        if(users instanceof Array){
-            userList = users as Array<AccountModel>;
-        }else{
-            userList = users.data as Array<AccountModel>;  
-        }
- 
-        
+        const userList:AccountModel[] = usersData.data;  
+                
         const user: Array<any> = [];
         (userList as Array<AccountModel>)?.forEach(async (element) => {
-     
             user.push(await buildAccountInfo(element));
         });
 
       
-        return Promise.resolve({ user });
+        return Promise.resolve(buildPaginationResponse({ user },page,perPage,Math.ceil(usersData.total/perPage),usersData.total));
     }
 
 

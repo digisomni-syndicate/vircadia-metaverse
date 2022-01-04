@@ -3,7 +3,7 @@ import { DatabaseService } from './../../dbservice/DatabaseService';
 import { Application } from '../../declarations';
 import config from '../../appconfig';
 import { Response } from '../../utils/response'; 
-
+import { buildSimpleResponse,buildPaginationResponse } from '../../responsebuilder/responseBuilder';
 
 export class Friends extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -19,6 +19,7 @@ export class Friends extends DatabaseService {
                 const newParticularUserData = ParticularUserData.data[0];
                 newParticularUserData.friends.push(data.username);
                 await this.patchData(config.dbCollections.accounts, params.user.id,newParticularUserData);
+                return Promise.resolve({});
             } else {
                 return Response.error('cannot add friend who is not a connection');
             }
@@ -30,7 +31,7 @@ export class Friends extends DatabaseService {
     async find(params?: any): Promise<any> {
         if (params.user.friends) {
             const friends = params.user.friends;
-            return Promise.resolve({ friends });
+            return Promise.resolve(buildSimpleResponse({ friends }));
         } else {
             throw new Error('No friend found');
         }
@@ -45,6 +46,7 @@ export class Friends extends DatabaseService {
             ParticularUserData.data[0].friends = friends; 
             const newParticularUserData = ParticularUserData.data[0];
             await this.patchData(config.dbCollections.accounts,params.user.id,newParticularUserData);
+            return Promise.resolve({});
         } else {
             throw new Error('Not logged in');
         }
