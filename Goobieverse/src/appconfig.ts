@@ -36,6 +36,9 @@ const server = {
     version: process.env.SERVER_VERSION ?? '',
 };
 
+/*
+* Email
+*/
 const email = { 
     host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
     port: process.env.SMTP_PORT ?? '465',

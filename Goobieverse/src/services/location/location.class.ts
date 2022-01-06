@@ -6,11 +6,26 @@ import config from '../../appconfig';
 import { buildLocationInfo } from '../../responsebuilder/placesBuilder';
 import { IsNotNullOrEmpty } from '../../utils/Misc';
 import { buildSimpleResponse } from '../../responsebuilder/responseBuilder';
+import { messages } from '../../utils/messages';
 
 export class Location extends DatabaseService {
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
     }
+
+    /**
+   * Update location
+   *
+   * @remarks
+   * This method is part of the update location
+   * Request Type - PUT
+   * End Point - API_URL/location
+   * 
+   * @requires -authentication
+   * @param requestBody - {"network_address":"network_address","network_port":"3030","name":"Test name","path": "/X,Y,Z/X,Y,Z,W","online": "false","placeId":"random-place-id","domainId":"random-domain-id"}
+   * @returns -     {"status": "success","data": {"location": { "root": {"domain": {"id":"","network_address":"","network_port":"","ice_server_address":"","name":""},"name": placeName,},"path": "/X,Y,Z/X,Y,Z,W","online": bool}}} or { status: 'failure', message: 'message'}
+   * 
+   */
   
     async update(id: NullableId, data: any, params: any): Promise<any> {
         if (params.user.id) {
@@ -48,13 +63,25 @@ export class Location extends DatabaseService {
                 const location = await buildLocationInfo(account,domainModel);
                 return Promise.resolve(buildSimpleResponse({location:location}));
             }else{
-                throw new Error('Badly formatted request');
+                throw new Error(messages.common_messages_badly_formed_request);
             }
         } else {
-            throw new Error('Not logged In');
+            throw new Error(messages.common_messages_not_logged_in);
         }
     }
   
+    /**
+   * GET location
+   *
+   * @remarks
+   * This method is part of the get location
+   * Request Type - GET
+   * End Point - API_URL/location
+   * 
+   * @requires -authentication
+   * @returns - {"status": "success","data": {"location": { "root": {"domain": {"id":"","network_address":"","network_port":"","ice_server_address":"","name":""},"name": placeName,},"path": "/X,Y,Z/X,Y,Z,W","online": bool}}} or { status: 'failure', message: 'message'}
+   * 
+   */
 
     async find(params?: any): Promise<any> {
         if (params.user) {
@@ -62,7 +89,7 @@ export class Location extends DatabaseService {
             const location = await buildLocationInfo(params.user,domain);
             return Promise.resolve(buildSimpleResponse({ location }));
         } else {
-            throw new Error('Not logged In');
+            throw new Error(messages.common_messages_not_logged_in);
         }
     }
   

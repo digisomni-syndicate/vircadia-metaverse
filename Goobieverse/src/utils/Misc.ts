@@ -3,6 +3,7 @@ import http from 'http';
 import https from 'https';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 // Return 'true' if the passed value is null or empty
 export function IsNullOrEmpty(pVal: any): boolean {
@@ -140,3 +141,10 @@ export const isValidArray = (arr: []) => {
 export const isValidObject = (obj: object) => {
     return obj && Object.keys(obj).length > 0;
 };
+
+// Return a string of random hex numbers of the specified length
+export function genRandomString(pLen: number) : string {
+    return crypto.randomBytes(Math.ceil(pLen/2))
+        .toString('hex')
+        .slice(0, pLen);
+}

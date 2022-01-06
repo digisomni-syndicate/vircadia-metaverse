@@ -14,7 +14,8 @@ import path from 'path';
 import fsPromises from 'fs/promises';
 import { buildUserInfo } from '../../responsebuilder/accountsBuilder';
 import { RequestModel } from '../../interfaces/RequestModel';
-import { buildSimpleResponse,buildPaginationResponse } from '../../responsebuilder/responseBuilder';
+import { buildSimpleResponse, buildPaginationResponse } from '../../responsebuilder/responseBuilder';
+import { messages } from '../../utils/messages';
 export class Users extends DatabaseService {
     app: Application;
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -152,22 +153,22 @@ export class Users extends DatabaseService {
                                     );
                                 }
                             } else {
-                                throw new Error('Send valid Email address');
+                                throw new Error(messages.common_messages_email_validation_error);
                             }
                         } else {
-                            throw new Error('Could not create account');
+                            throw new Error(messages.common_messages_could_not_create_account);
                         }
                     } else {
-                        throw new Error('Email already exists');
+                        throw new Error(messages.common_messages_user_email_link_error);
                     }
                 } else {
-                    throw new Error('Account already exists');
+                    throw new Error(messages.common_messages_account_already_exists);
                 }
             } else {
-                throw new Error('Badly formatted username');
+                throw new Error(messages.common_messages_badly_formed_username);
             }
         } else {
-            throw new Error('Badly formatted request');
+            throw new Error(messages.common_messages_badly_formed_request);
         }
     }
 

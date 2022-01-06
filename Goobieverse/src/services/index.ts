@@ -11,6 +11,10 @@ import accounts from './accounts/accounts.service';
 import location from './location/location.service';
 import domains from './domains/domains.service';
 
+import place from './place/place.service';
+
+import current from './current/current.service';
+
 export default function (app: Application): void {
     app.configure(auth);
     app.configure(users);
@@ -21,4 +25,6 @@ export default function (app: Application): void {
     app.configure(connections);
     app.configure(location);
     app.configure(domains);
+    app.configure(place);
+    app.configure(current);
 }
