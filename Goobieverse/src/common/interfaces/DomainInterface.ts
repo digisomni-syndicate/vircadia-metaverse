@@ -1,4 +1,4 @@
-export interface DomainModel {
+export interface DomainInterface {
     id: string; // globally unique domain identifier
     name: string; // domain name/label
     visibility: string; // visibility of this entry in general domain lists

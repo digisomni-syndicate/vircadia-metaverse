@@ -1,11 +1,11 @@
 import { Service, } from 'feathers-mongodb';
-import { Application } from '../declarations';
-import { HookContext, Paginated, Id, } from '@feathersjs/feathers';
+import { Application } from '../../declarations';
+import { HookContext, Paginated, Id,NullableId } from '@feathersjs/feathers';
 import { DatabaseServiceOptions } from './DatabaseServiceOptions';
 import { Db, Collection, Document, Filter } from 'mongodb';
-import { IsNotNullOrEmpty, IsNullOrEmpty } from '../utils/Misc';
-import { VKeyedCollection } from '../utils/vTypes';
-import { messages } from '../utils/messages';
+import { IsNotNullOrEmpty, IsNullOrEmpty } from '../../utils/Misc';
+import { VKeyedCollection } from '../../utils/vTypes';
+import { messages } from '../../utils/messages';
 
 export class DatabaseService extends Service {
     app?: Application;
@@ -80,9 +80,18 @@ export class DatabaseService extends Service {
         id: Id,
         data: VKeyedCollection
     ): Promise<any> {
-        console.log(tableName + '  ' + id);
         await this.getService(tableName);
         return await super.patch(id, data);
+    }
+
+    async patchMultipleData(
+        tableName: string,
+        id: NullableId,
+        data: VKeyedCollection,
+        filter: Filter<any>
+    ): Promise<any> {
+        await this.getService(tableName);
+        return await super.patch(id, data,filter);
     }
 
     async deleteData(

@@ -7,9 +7,9 @@ import auth from './auth/auth.service';
 import email from './email/email.service';
 import connections from './connections/connections.service';
 import accounts from './accounts/accounts.service';
-
 import location from './location/location.service';
 import domains from './domains/domains.service';
+import mediaServices from './media/services';
 
 export default function (app: Application): void {
     app.configure(auth);
@@ -21,4 +21,7 @@ export default function (app: Application): void {
     app.configure(connections);
     app.configure(location);
     app.configure(domains);
+    mediaServices.forEach((service)=>{
+        app.configure(service);
+    });
 }

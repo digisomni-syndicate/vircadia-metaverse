@@ -3,7 +3,7 @@ import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import { Email } from './email.class';
 import hooks from './email.hooks';
-import config from '../../appconfig';
+import config from '../../appConfig';
 import smtpTransport from 'nodemailer-smtp-transport';
 import Mailer from 'feathers-mailer';
 

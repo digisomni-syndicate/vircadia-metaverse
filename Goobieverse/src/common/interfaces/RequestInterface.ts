@@ -17,7 +17,7 @@
 
 // Class to manage the manipulations on entities scope of application
 // Note: *Entity classes cannot have instance functions because they are created from the database
-export interface RequestModel {
+export interface RequestInterface {
     id?: string;
     requestType?: string;
 

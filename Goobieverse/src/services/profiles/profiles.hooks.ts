@@ -3,7 +3,7 @@ import checkAccessToAccount from '../../hooks/checkAccess';
 import  requestFail  from '../../hooks/requestFail';
 import requestSuccess from '../../hooks/requestSuccess';
 import {Perm} from '../../utils/Perm';
-import config from '../../appconfig';
+import config from '../../appConfig';
 import { iff } from 'feathers-hooks-common';
 import isHasAuthToken from '../../hooks/isHasAuthToken';
 import * as feathersAuthentication from '@feathersjs/authentication';

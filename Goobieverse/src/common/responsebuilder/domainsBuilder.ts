@@ -1,11 +1,11 @@
-import { DatabaseService } from './../dbservice/DatabaseService';
-import { Visibility } from '../utils/sets/Visibility';
-import { DomainModel } from '../interfaces/DomainModel';
-import { createSimplifiedPublicKey } from '../utils/Utils';
+import { DatabaseService } from '../dbservice/DatabaseService';
+import { Visibility } from '../sets/Visibility';
+import { DomainInterface } from '../interfaces/DomainInterface';
+import { createSimplifiedPublicKey } from '../../utils/Utils';
 import { buildPlacesForDomain } from './placesBuilder';
-import { Maturity } from '../utils/sets/Maturity';
+import { Maturity } from '../sets/Maturity';
 // A smaller, top-level domain info block
-export async function buildDomainInfo(pDomain: DomainModel): Promise<any> {
+export async function buildDomainInfo(pDomain: DomainInterface): Promise<any> {
     return {
         id: pDomain.id,
         domainId: pDomain.id,
@@ -27,7 +27,7 @@ export async function buildDomainInfo(pDomain: DomainModel): Promise<any> {
 }
   
 // Return a structure with the usual domain information.
-export async function buildDomainInfoV1(db: DatabaseService,pDomain: DomainModel): Promise<any> {
+export async function buildDomainInfoV1(db: DatabaseService,pDomain: DomainInterface): Promise<any> {
     return {
         domainId: pDomain.id,
         id: pDomain.id, // legacy

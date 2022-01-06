@@ -1,12 +1,13 @@
-import { DatabaseService } from './../../dbservice/DatabaseService';
-import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
+import { DatabaseService } from '../../common/dbservice/DatabaseService';
+import { DatabaseServiceOptions } from '../../common/dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
-import config from '../../appconfig';
+import config from '../../appConfig';
 import { Response } from '../../utils/response';
-import { isValidObject } from '../../utils/Misc';
-import { AccountModel } from '../../interfaces/AccountModel';
-import { buildAccountInfo } from '../../responsebuilder/accountsBuilder';
-import { buildPaginationResponse } from '../../responsebuilder/responseBuilder';
+import { IsNotNullOrEmpty } from '../../utils/Misc';
+import { AccountInterface } from '../../common/interfaces/AccountInterface';
+import { buildAccountInfo } from '../../common/responsebuilder/accountsBuilder';
+import { buildPaginationResponse } from '../../common/responsebuilder/responseBuilder';
+import { extractLoggedInUserFromParams } from '../auth/auth.utils';
 
 export class Connections extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,10 +18,11 @@ export class Connections extends DatabaseService {
   
     async create(data: any, params?: any): Promise<any> {
         if (data && data.username) {
-            const userData: any = await this.getData(config.dbCollections.accounts, params.user.id);
+            const loginUser = extractLoggedInUserFromParams(params);
+            const userData: any = await this.getData(config.dbCollections.accounts, loginUser.id);
             userData.connections.push(data.username);
-            const addUserData = await this.patchData(config.dbCollections.accounts, params.user.id, userData);
-            if (isValidObject(addUserData)) {
+            const addUserData = await this.patchData(config.dbCollections.accounts, loginUser.id, userData);
+            if (IsNotNullOrEmpty(addUserData)) {
                 return Promise.resolve({});
             } else {
                 return Response.error('cannot add connections this way');
@@ -31,14 +33,15 @@ export class Connections extends DatabaseService {
     }
 
     async remove(id: string, params?: any): Promise<any> {
-        if (params.user.connections) {
-            const ParticularUserData: any = await this.findData(config.dbCollections.accounts, { query: { id: params.user.id } });
+        const loginUser = extractLoggedInUserFromParams(params);
+        if (loginUser?.connections) {
+            const ParticularUserData: any = await this.findData(config.dbCollections.accounts, { query: { id: loginUser.id } });
             const connections = ParticularUserData.data[0].connections.filter(function (value:string) {
                 return value !== id;
             });
             ParticularUserData.data[0].connections = connections; 
             const newParticularUserData = ParticularUserData.data[0];
-            await this.patchData(config.dbCollections.accounts,params.user.id,newParticularUserData);
+            await this.patchData(config.dbCollections.accounts,loginUser.id,newParticularUserData);
             return Promise.resolve({});
         } else {
             throw new Error('Not logged in');
@@ -59,13 +62,12 @@ export class Connections extends DatabaseService {
             },
         });
       
-        const userList:AccountModel[] = usersData.data;  
+        const userList:AccountInterface[] = usersData.data;  
                 
         const user: Array<any> = [];
-        (userList as Array<AccountModel>)?.forEach(async (element) => {
+        (userList as Array<AccountInterface>)?.forEach(async (element) => {
             user.push(await buildAccountInfo(element));
         });
-
       
         return Promise.resolve(buildPaginationResponse({ user },page,perPage,Math.ceil(usersData.total/perPage),usersData.total));
     }

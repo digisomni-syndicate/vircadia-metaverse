@@ -1,10 +1,10 @@
-import { DomainModel } from '../interfaces/DomainModel';
-import { AccountModel } from '../interfaces/AccountModel';
+import { DomainInterface } from '../interfaces/DomainInterface';
+import { AccountInterface } from '../interfaces/AccountInterface';
 import { buildLocationInfo } from './placesBuilder';
-import { VKeyedCollection } from '../utils/vTypes';
-import { isAdmin, isEnabled, createSimplifiedPublicKey } from '../utils/Utils';
+import { VKeyedCollection } from '../../utils/vTypes';
+import { isAdmin, isEnabled, createSimplifiedPublicKey } from '../../utils/Utils';
 // Return the limited "user" info.. used by /api/v1/users
-export async function buildUserInfo(pAccount: AccountModel,domain?:DomainModel): Promise<any> {
+export async function buildUserInfo(pAccount: AccountInterface,domain?:DomainInterface): Promise<any> {
     return {
         accountId: pAccount.id,
         id: pAccount.id,
@@ -14,7 +14,7 @@ export async function buildUserInfo(pAccount: AccountModel,domain?:DomainModel):
     };
 }
 
-export async function buildImageInfo(pAccount: AccountModel): Promise<any> {
+export async function buildImageInfo(pAccount: AccountInterface): Promise<any> {
     const ret: VKeyedCollection = {};
 
     if (pAccount.imagesTiny) ret.tiny = pAccount.imagesTiny;
@@ -26,8 +26,8 @@ export async function buildImageInfo(pAccount: AccountModel): Promise<any> {
 // Return the block of account information.
 // Used by several of the requests to return the complete account information.
 export async function buildAccountInfo(
-    pAccount: AccountModel,
-    domain?:DomainModel
+    pAccount: AccountInterface,
+    domain?:DomainInterface
 ): Promise<any> {
     return {
         accountId: pAccount.id,
@@ -58,8 +58,8 @@ export async function buildAccountInfo(
 // Return the block of account information used as the account 'profile'.
 // Anyone can fetch a profile (if 'availability' is 'any') so not all info is returned
 export async function buildAccountProfile(
-    pAccount: AccountModel,
-    aDomain?: DomainModel
+    pAccount: AccountInterface,
+    aDomain?: DomainInterface
 ): Promise<any> {
     return {
         accountId: pAccount.id,

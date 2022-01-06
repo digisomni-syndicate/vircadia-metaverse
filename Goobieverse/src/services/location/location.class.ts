@@ -1,19 +1,20 @@
-import { DatabaseService } from './../../dbservice/DatabaseService';
-import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
+import { DatabaseService } from '../../common/dbservice/DatabaseService';
+import { DatabaseServiceOptions } from '../../common/dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
 import { NullableId } from '@feathersjs/feathers';
-import config from '../../appconfig';
-import { buildLocationInfo } from '../../responsebuilder/placesBuilder';
+import config from '../../appConfig';
+import { buildLocationInfo } from '../../common/responsebuilder/placesBuilder';
 import { IsNotNullOrEmpty } from '../../utils/Misc';
-import { buildSimpleResponse } from '../../responsebuilder/responseBuilder';
-
+import { buildSimpleResponse } from '../../common/responsebuilder/responseBuilder';
+import { extractLoggedInUserFromParams } from '../auth/auth.utils';
 export class Location extends DatabaseService {
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
     }
   
     async update(id: NullableId, data: any, params: any): Promise<any> {
-        if (params.user.id) {
+        const loginUser = extractLoggedInUserFromParams(params);
+        if (loginUser?.id) {
             if (data.location) {
                 const locationData= data.location;                
                 const newDataObject:any = {};
@@ -39,13 +40,13 @@ export class Location extends DatabaseService {
                     newDataObject.availability = locationData.availability;
                 }
 
-                await this.patchData(config.dbCollections.accounts, params.user.id, newDataObject);
-                const account = await this.getData(config.dbCollections.accounts, params.user.id);
-                let domainModel:any;
+                await this.patchData(config.dbCollections.accounts, loginUser.id, newDataObject);
+                const account = await this.getData(config.dbCollections.accounts, loginUser.id);
+                let DomainInterface:any;
                 if(IsNotNullOrEmpty(account.locationDomainId)){
-                    domainModel = await this.getData(config.dbCollections.domains,account.locationDomainId);
+                    DomainInterface = await this.getData(config.dbCollections.domains,account.locationDomainId);
                 }
-                const location = await buildLocationInfo(account,domainModel);
+                const location = await buildLocationInfo(account,DomainInterface);
                 return Promise.resolve(buildSimpleResponse({location:location}));
             }else{
                 throw new Error('Badly formatted request');
@@ -57,9 +58,10 @@ export class Location extends DatabaseService {
   
 
     async find(params?: any): Promise<any> {
-        if (params.user) {
-            const domain = await this.getData(config.dbCollections.domains,params.user.locationDomainId);
-            const location = await buildLocationInfo(params.user,domain);
+        const loginUser = extractLoggedInUserFromParams(params);
+        if (loginUser) {
+            const domain = await this.getData(config.dbCollections.domains,loginUser.locationDomainId);
+            const location = await buildLocationInfo(loginUser,domain);
             return Promise.resolve(buildSimpleResponse({ location }));
         } else {
             throw new Error('Not logged In');

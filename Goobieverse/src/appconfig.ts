@@ -4,11 +4,7 @@ import { IsNullOrEmpty, getMyExternalIPAddress } from './utils/Misc';
 import fs from 'fs';
 
 if (globalThis.process?.env.APP_ENV === 'development') {
-    // const fs = require('fs');
-    if (
-        !fs.existsSync(appRootPath.path + '/.env') &&
-    !fs.existsSync(appRootPath.path + '/.env.local')
-    ) {
+    if ( !fs.existsSync(appRootPath.path + '/.env') && !fs.existsSync(appRootPath.path + '/.env.local')) {
         const fromEnvPath = appRootPath.path + '/.env.local.default';
         const toEnvPath = appRootPath.path + '/.env.local';
         fs.copyFileSync(fromEnvPath, toEnvPath, fs.constants.COPYFILE_EXCL);
@@ -23,7 +19,6 @@ dotenv.config({
 /**
  * Server
  */
-
 const server = {
     local: process.env.LOCAL === 'true',
     hostName: process.env.SERVER_HOST,
@@ -34,6 +29,9 @@ const server = {
     },
     publicPath: process.env.PUBLIC_PATH,
     version: process.env.SERVER_VERSION ?? '',
+    localStorageProvider: process.env.LOCAL_STORAGE_PROVIDER || '',
+    localStorageProviderPort: process.env.LOCAL_STORAGE_PROVIDER_PORT || '',
+    storageProvider: process.env.STORAGE_PROVIDER || 'local',
 };
 
 const email = { 
@@ -54,7 +52,7 @@ const email = {
 const metaverseServer = {
     listen_host: process.env.LISTEN_HOST ?? '0.0.0.0',
     listen_port: process.env.LISTEN_PORT ?? 9400,
-    metaverseInfoAdditionFile: process.env.METAVERSE_INFO_File ?? '',
+    metaverseInfoAdditionFile: './metaverse_info.json',
     session_timeout_minutes: 5,
     heartbeat_seconds_until_offline: 5 * 60,      // seconds until non-heartbeating user is offline
     domain_seconds_until_offline: 10 * 60,        // seconds until non-heartbeating domain is offline
@@ -62,13 +60,13 @@ const metaverseServer = {
     handshake_request_expiration_minutes: 1,      // minutes that a handshake friend request is active
     connection_request_expiration_minutes: 60 * 24 * 4, // 4 days
     friend_request_expiration_minutes: 60 * 24 * 4,     // 4 days
-    base_admin_account:process.env.ADMIN_ACCOUNT ?? 'Goobieverse',
+    base_admin_account:process.env.ADMIN_ACCOUNT ?? 'Metaverse',
     place_current_timeout_minutes: 5,             // minutes until current place info is stale
     place_inactive_timeout_minutes: 60,           // minutes until place is considered inactive
     place_check_last_activity_seconds: (3 * 60) - 5,  // seconds between checks for Place lastActivity updates
     email_verification_timeout_minutes: 1440,
     enable_account_email_verification: process.env.ENABLE_ACCOUNT_VERIFICATION ?? 'true',
-    email_verification_email_body: '../verificationEmail.html',
+    email_verification_email_body: '../mailtemplates/verificationEmail.html',
     email_verification_success_redirect: 'METAVERSE_SERVER_URL/verificationEmailSuccess.html',
     email_verification_failure_redirect: 'METAVERSE_SERVER_URL/verificationEmailFailure.html?r=FAILURE_REASON'
 };
@@ -136,8 +134,39 @@ const dbCollections = {
     accounts : 'accounts',
     places : 'places',
     tokens : 'tokens',
-    requests:'requests'
+    requests:'requests',
+    asset:'asset'
 };
+
+
+/**
+ * AWS
+ */
+const aws = {
+    keys: {
+        accessKeyId: process.env.STORAGE_AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.STORAGE_AWS_ACCESS_KEY_SECRET || ''
+    },
+    route53: {
+        hostedZoneId: process.env.ROUTE53_HOSTED_ZONE_ID || '',
+        keys: {
+            accessKeyId: process.env.ROUTE53_ACCESS_KEY_ID || '',
+            secretAccessKey: process.env.ROUTE53_ACCESS_KEY_SECRET || ''
+        }
+    },
+    s3: {
+        baseUrl: 'https://s3.amazonaws.com',
+        staticResourceBucket: process.env.STORAGE_S3_STATIC_RESOURCE_BUCKET || '',
+        region: process.env.STORAGE_S3_REGION || '',
+        avatarDir: process.env.STORAGE_S3_AVATAR_DIRECTORY || '',
+        s3DevMode: process.env.STORAGE_S3_DEV_MODE || ''
+    },
+    cloudfront: {
+        domain: process.env.STORAGE_CLOUDFRONT_DOMAIN || '',
+        distributionId: process.env.STORAGE_CLOUDFRONT_DISTRIBUTION_ID || ''
+    }
+};
+  
 
 
 /**
@@ -151,7 +180,8 @@ const config = {
     metaverse,
     metaverseServer,
     dbCollections,
-    email
+    email,
+    aws
 };
 
 export default config;

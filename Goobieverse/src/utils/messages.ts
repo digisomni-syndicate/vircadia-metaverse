@@ -15,5 +15,8 @@ export const messages = {
     common_messages_error_verify_request_expired:'Not verified. Request expired',
     common_messages_target_domain_notfound:'DomainId does not match a domain',
     common_messages_data_notfound:'Data not found',
-  
+    common_messages_thumbnail_size_exceeded :'Thumbnail file size is outside the desired range.',
+    common_messages_avatar_size_exceeded:'Avatar file size is outside the desired range.',
+    common_messages_avatar_invalid_file_type :'Avatar file type is not allowed.',
+    common_messages_asset_file_missing :'Asset file not found.',
 };

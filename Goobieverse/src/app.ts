@@ -8,7 +8,7 @@ import feathers from '@feathersjs/feathers';
 import express from '@feathersjs/express';
 import socketio from '@feathersjs/socketio';
 import { publicRoutes } from './routes/publicRoutes';
-import config from './appconfig';
+import config from './appConfig';
 import { Application } from './declarations';
 import logger from './logger';
 import middleware from './middleware';

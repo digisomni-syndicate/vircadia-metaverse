@@ -1,19 +1,22 @@
-import { AccountModel } from '../interfaces/AccountModel';
+import { AccountInterface } from '../common/interfaces/AccountInterface';
 import { HookContext } from '@feathersjs/feathers';
 import { IsNotNullOrEmpty } from '../utils/Misc';
 import { Perm } from '../utils/Perm';
 import { isAdmin } from '../utils/Utils';
-import config from '../appconfig';
+import config from '../appConfig';
 import { HTTPStatusCode } from '../utils/response';
-import { Availability } from '../utils/sets/Availability';
+import { Availability } from '../common/sets/Availability';
 import { SArray } from '../utils/vTypes';
-import { DatabaseService } from '../dbservice/DatabaseService';
+import { DatabaseService } from '../common/dbservice/DatabaseService';
 import { messages } from '../utils/messages';
+import { extractLoggedInUserFromParams } from '../services/auth/auth.utils';
 
 export default (collection: string, pRequiredAccess: Perm[]) => {
     return async (context: HookContext): Promise<HookContext> => {
+        
         const dbService = new DatabaseService({}, undefined, context);
-        const loginUser = context.params.user;
+
+        const loginUser = extractLoggedInUserFromParams(context.params);
 
         const entryDataArray = await dbService.findDataToArray(collection, {
             query: { id: context.id },
@@ -87,7 +90,7 @@ export default (collection: string, pRequiredAccess: Perm[]) => {
                         pTargetEntity.hasOwnProperty('friends')
                     ) {
                         const targetFriends: string[] = (
-                            pTargetEntity as AccountModel
+                            pTargetEntity as AccountInterface
                         ).friends;
                         if (targetFriends) {
                             canAccess = SArray.hasNoCase(
@@ -104,7 +107,7 @@ export default (collection: string, pRequiredAccess: Perm[]) => {
                         pTargetEntity.hasOwnProperty('connections')
                     ) {
                         const targetConnections: string[] = (
-                            pTargetEntity as AccountModel
+                            pTargetEntity as AccountInterface
                         ).connections;
                         if (targetConnections) {
                             canAccess = SArray.hasNoCase(
@@ -117,7 +120,7 @@ export default (collection: string, pRequiredAccess: Perm[]) => {
                 case Perm.ADMIN:
                     // If the authToken is an account, has access if admin
                     if (loginUser) {
-                        canAccess = isAdmin(loginUser as AccountModel);
+                        canAccess = isAdmin(loginUser as AccountInterface);
                     }
                     break;
                 case Perm.SPONSOR:

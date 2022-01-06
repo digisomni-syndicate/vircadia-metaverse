@@ -1,15 +1,16 @@
-import { DomainModel } from './../../interfaces/DomainModel';
+import { DomainInterface } from '../../common/interfaces/DomainInterface';
 import { Params,NullableId } from '@feathersjs/feathers';
-import { DatabaseService } from '../../dbservice/DatabaseService';
-import { DatabaseServiceOptions} from '../../dbservice/DatabaseServiceOptions';
+import { DatabaseService } from '../../common/dbservice/DatabaseService';
+import { DatabaseServiceOptions} from '../../common/dbservice/DatabaseServiceOptions';
 import { Application } from '../../declarations';
-import config from '../../appconfig';
-import { buildDomainInfoV1 } from '../../responsebuilder/domainsBuilder';
+import config from '../../appConfig';
+import { buildDomainInfoV1 } from '../../common/responsebuilder/domainsBuilder';
 import { isAdmin } from '../../utils/Utils';
-import { AccountModel } from '../../interfaces/AccountModel';
+import { AccountInterface } from '../../common/interfaces/AccountInterface';
 import { IsNotNullOrEmpty, IsNullOrEmpty } from '../../utils/Misc';
 import { messages } from '../../utils/messages';
-import { buildPaginationResponse,buildSimpleResponse } from '../../responsebuilder/responseBuilder';
+import { buildPaginationResponse,buildSimpleResponse } from '../../common/responsebuilder/responseBuilder';
+import { extractLoggedInUserFromParams } from '../auth/auth.utils';
 
 export class Domains extends DatabaseService {
     
@@ -18,15 +19,15 @@ export class Domains extends DatabaseService {
     }
 
     async find(params?: Params): Promise<any> {
-        console.log(params);
+        const loginUser = extractLoggedInUserFromParams(params);
         const perPage = parseInt(params?.query?.per_page) || 10;
         const page = parseInt(params?.query?.page) || 1;
         const skip = ((page) - 1) * perPage;
         let asAdmin = params?.query?.asAdmin === 'true' ? true : false;
         const targetAccount = params?.query?.account ?? '';
-        const loginUserId = params?.user?.id ?? '';
+        const loginUserId = loginUser?.id ?? '';
 
-        if ( asAdmin && IsNotNullOrEmpty(params?.user) && isAdmin(params?.user as AccountModel) && IsNullOrEmpty(targetAccount)) {
+        if ( asAdmin && IsNotNullOrEmpty(loginUser) && isAdmin(loginUser as AccountInterface) && IsNullOrEmpty(targetAccount)) {
             asAdmin = true;
         } else {
             asAdmin = false;
@@ -49,7 +50,7 @@ export class Domains extends DatabaseService {
                 }
             });
         
-        const domainList : DomainModel[] = domainsData.data;
+        const domainList : DomainInterface[] = domainsData.data;
       
         const domains: Array<any> = [];
         domainList.forEach(async (element) => {

@@ -1,12 +1,12 @@
-import { RequestType } from './../../utils/sets/RequestType';
-import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
+import { RequestType } from '../../common/sets/RequestType';
+import { DatabaseServiceOptions } from '../../common/dbservice/DatabaseServiceOptions';
 import { Params, Id, NullableId, Paginated } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { DatabaseService } from './../../dbservice/DatabaseService';
-import config from '../../appconfig';
-import { AccountModel } from '../../interfaces/AccountModel';
-import { RequestModel } from '../../interfaces/RequestModel';
-import { buildAccountInfo } from '../../responsebuilder/accountsBuilder';
+import { DatabaseService } from '../../common/dbservice/DatabaseService';
+import config from '../../appConfig';
+import { AccountInterface } from '../../common/interfaces/AccountInterface';
+import { RequestInterface } from '../../common/interfaces/RequestInterface';
+import { buildAccountInfo } from '../../common/responsebuilder/accountsBuilder';
 import { IsNotNullOrEmpty } from '../../utils/Misc';
 import {
     isAdmin,
@@ -16,47 +16,72 @@ import {
 } from '../../utils/Utils';
 import { messages } from '../../utils/messages';
 import { VKeyedCollection, SArray } from '../../utils/vTypes';
-import { buildPaginationResponse,buildSimpleResponse } from '../../responsebuilder/responseBuilder';
-
+import { buildPaginationResponse,buildSimpleResponse } from '../../common/responsebuilder/responseBuilder';
+import { extractLoggedInUserFromParams } from '../auth/auth.utils';
 
 export class Accounts extends DatabaseService {
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
     }
+    
+    /**
+   * Verify user
+   *
+   * @remarks
+   * This method is part of the Verify user 
+   * Request Type - GET
+   *  End Point - API_URL/accounts/verify/email?a={accountId}&v={verificationCode}
+   *  
+   * @requires @param a - User account
+   * @requires @param v - User verification code
+   * @returns After verification redirect to success or fail verification page 
+   * 
+   * 
+   */
+
+    /**
+   * Returns the Accounts
+   *
+   * @remarks
+   * This method is part of the get list of accounts 
+   * Request Type - GET
+   * End Point - API_URL/accounts?per_page=10&page=1 ....
+   * 
+   * @param per_page - page size
+   * @param page - page number
+   * @param filter - Connections|friends|all
+   * @param status - Online|domainId
+   * @param search - WildcardSearchString
+   * @param acct - Account id
+   * @param asAdmin - true | false if logged in account is administrator, list all accounts. Value is optional.
+   * @returns - Paginated accounts { data:{accounts:[{...},{...}]},current_page:1,per_page:10,total_pages:1,total_entries:5}
+   * 
+   */
 
     async find(params?: Params): Promise<any> {
-        
+        const loginUser = extractLoggedInUserFromParams(params);
         if(IsNotNullOrEmpty(params?.query?.a) && IsNotNullOrEmpty(params?.query?.v)) {
             const accountId = params?.query?.a;
             const verificationCode = params?.query?.v;
             
-            const requestList: RequestModel[] = await this.findDataToArray(config.dbCollections.requests,{query:{requestingAccountId:accountId,verificationCode:verificationCode,requestType:RequestType.VERIFYEMAIL}});
+            const requestList: RequestInterface[] = await this.findDataToArray(config.dbCollections.requests,{query:{requestingAccountId:accountId,verificationCode:verificationCode,requestType:RequestType.VERIFYEMAIL}});
             if(requestList.length >0 ){
-                const requestModel = requestList[0];
-                //if(requestModel.expirationTime && requestModel.expirationTime > new Date(Date.now())){
+                const RequestInterface = requestList[0];
+                //if(RequestInterface.expirationTime && RequestInterface.expirationTime > new Date(Date.now())){
                 await this.patchData(config.dbCollections.accounts,accountId,{accountEmailVerified:true,accountWaitingVerification:false});
                 //}else{
                 //  throw new Error(messages.common_messages_error_verify_request_expired);
                 //}
-                await this.deleteData(config.dbCollections.requests,requestModel.id??'');
+                await this.deleteData(config.dbCollections.requests,RequestInterface.id??'');
                 return Promise.resolve();
             }else{
                 throw new Error(messages.common_messages_error_missing_verification_pending_request);
             }
-        } else if (params?.user) {
-            const loginUserId = params?.user?.id ?? '';
+        } else if (loginUser) {
             const perPage = parseInt(params?.query?.per_page) || 10;
             const page = parseInt(params?.query?.page) || 1;
             const skip = ((page) - 1) * perPage;
 
-            // Passed the request, get the filter parameters from the query.
-            // Here we pre-process the parameters to make the DB query construction quicker.
-            //    filter=connections|friends|all
-            //    status=online|domainId
-            //    search=wildcardSearchString
-            // The administrator can specify an account to limit requests to
-            // acct = account id
-            //asAdmin=true: if logged in account is administrator, list all accounts. Value is optional.
             let asAdmin = params?.query?.asAdmin === 'true' ? true : false;
             const filter: string[] = (params?.query?.filter ?? '').split(',');
             const status: string = params?.query?.status ?? '';
@@ -64,7 +89,7 @@ export class Accounts extends DatabaseService {
 
             const filterQuery: any = {};
 
-            if (asAdmin &&IsNotNullOrEmpty(params?.user) && isAdmin(params?.user as AccountModel) && IsNotNullOrEmpty(targetAccount) ) {
+            if (asAdmin &&IsNotNullOrEmpty(loginUser) && isAdmin(loginUser as AccountInterface) && IsNotNullOrEmpty(targetAccount) ) {
                 asAdmin = true;
             } else {
                 asAdmin = false;
@@ -74,16 +99,16 @@ export class Accounts extends DatabaseService {
                 if (!filter.includes('all')) {
                     if (
                         filter.includes('friends') &&
-                        (params?.user?.friends ?? []).length > 0
+                        (loginUser?.friends ?? []).length > 0
                     ) {
-                        filterQuery.friends = { $in: params?.user?.friends };
+                        filterQuery.friends = { $in: loginUser.friends };
                     }
                     if (
                         filter.includes('connections') &&
-                        (params?.user?.connections ?? []).length > 0
+                        (loginUser.connections ?? []).length > 0
                     ) {
                         filterQuery.connections = {
-                            $in: params?.user?.connections,
+                            $in: loginUser.connections,
                         };
                     }
                 }
@@ -100,7 +125,7 @@ export class Accounts extends DatabaseService {
             }
 
             if (!asAdmin) {
-                filterQuery.id = loginUserId;
+                filterQuery.id = loginUser.id;
             } else if (IsNotNullOrEmpty(targetAccount)) {
                 filterQuery.id = targetAccount;
             }
@@ -116,13 +141,13 @@ export class Accounts extends DatabaseService {
                 }
             );
 
-            let accountsList: AccountModel[] = [];
+            let accountsList: AccountInterface[] = [];
  
-            accountsList = accountData.data as Array<AccountModel>;            
+            accountsList = accountData.data as Array<AccountInterface>;            
 
             const accounts: Array<any> = [];
 
-            (accountsList as Array<AccountModel>)?.forEach(async (element) => {
+            (accountsList as Array<AccountInterface>)?.forEach(async (element) => {
                 accounts.push(await buildAccountInfo(element));
             });
             return Promise.resolve(buildPaginationResponse({accounts:accounts},page,perPage,Math.ceil(accountData.total/perPage),accountData.total));
@@ -130,6 +155,20 @@ export class Accounts extends DatabaseService {
             throw new Error(messages.common_messages_unauthorized);
         }
     }
+
+    /**
+   * Returns the Account 
+   *
+   * @remarks
+   * This method is part of the get account
+   * Request Type - GET
+   * End Point - API_URL/accounts/{accountId}
+   * Access - Public, Owner, Admin
+   * 
+   * @param accountId - Account id (Url param)
+   * @returns - Account { data:{account{...}}}
+   * 
+   */
 
     async get(id: Id): Promise<any> {
         const objAccount = await this.getData(
@@ -144,13 +183,24 @@ export class Accounts extends DatabaseService {
         }
     }
 
+    /**
+   * Patch Account
+   *
+   * @remarks
+   * This method is part of the patch account
+   * Request Type - PATCH
+   * End Point - API_URL/accounts/{accountId}
+   * 
+   * @requires @param acct - Account id (URL param)
+   * @param requestBody - {accounts:{email:abc@test.com,public_key:key}}
+   * @returns - {status: 'success'} or { status: 'failure', message: 'message'}
+   * 
+   */
+
     async patch(id: NullableId, data: any, params: Params): Promise<any> {
         if (IsNotNullOrEmpty(id) && id) {
-            if (
-                (IsNotNullOrEmpty(params?.user) &&
-                    isAdmin(params?.user as AccountModel)) ||
-                id === params?.user?.id
-            ) {
+            const loginUser = extractLoggedInUserFromParams(params);
+            if ((IsNotNullOrEmpty(loginUser) && isAdmin(loginUser as AccountInterface)) || id === loginUser.id) {
                 const valuesToSet = data.accounts ?? {};
                 const updates: VKeyedCollection = {};
                 if (IsNotNullOrEmpty(valuesToSet.email)) {
@@ -164,9 +214,7 @@ export class Accounts extends DatabaseService {
                         { query: { email: valuesToSet.email } }
                     );
                     if (accountData.length > 0 && accountData[0].id !== id) {
-                        throw new Error(
-                            messages.common_messages_user_email_link_error
-                        );
+                        throw new Error(messages.common_messages_user_email_link_error);
                     }
                     updates.email = valuesToSet.email;
                 }
@@ -201,6 +249,20 @@ export class Accounts extends DatabaseService {
         }
     }
 
+    /**
+   * Delete Account
+   *
+   * @remarks
+   * This method is part of the delete account
+   * Request Type - DELETE
+   * End Point - API_URL/accounts/{accountId}
+   * Access: Admin only
+   * 
+   * @requires @param acct - Account id (URL param)
+   * @returns - {status: 'success'} or { status: 'failure', message: 'message'}
+   * 
+   */
+
     async remove(id: NullableId): Promise<any> {
         if (IsNotNullOrEmpty(id) && id) {
             const account = await this.getData(
@@ -210,7 +272,7 @@ export class Accounts extends DatabaseService {
 
             if (IsNotNullOrEmpty(account)) {
                 this.deleteData(config.dbCollections.accounts, id);
-                const accounts: AccountModel[] = await this.findDataToArray(
+                const accounts: AccountInterface[] = await this.findDataToArray(
                     config.dbCollections.accounts,
                     {
                         query: {

@@ -1,7 +1,7 @@
-import { AccountModel } from './../interfaces/AccountModel';
+import { AccountInterface } from '../common/interfaces/AccountInterface';
 import { SArray } from './vTypes';
-import { Roles } from './sets/Roles';
-import config from '../appconfig';
+import { Roles } from '../common/sets/Roles';
+import config from '../appConfig';
 
 
 // The legacy interface returns public keys as a stripped PEM key.
@@ -21,18 +21,18 @@ export function createSimplifiedPublicKey(pPubKey: string): string {
 }
 
 // getter property that is 'true' if the user is a grid administrator
-export function isAdmin(pAcct: AccountModel): boolean {
+export function isAdmin(pAcct: AccountInterface): boolean {
     return SArray.has(pAcct.roles, Roles.ADMIN);
 }
 // Any logic to test of account is active
 //   Currently checks if account email is verified or is legacy
 //   account (no 'accountEmailVerified' variable)
-export function isEnabled(pAcct: AccountModel): boolean {
+export function isEnabled(pAcct: AccountInterface): boolean {
     return pAcct.accountEmailVerified ?? true;
 }
 
 
-export function isOnline(pAcct: AccountModel): boolean {
+export function isOnline(pAcct: AccountInterface): boolean {
     if (pAcct && pAcct.timeOfLastHeartbeat) {
         return (
             Date.now().valueOf() - pAcct.timeOfLastHeartbeat.valueOf() <

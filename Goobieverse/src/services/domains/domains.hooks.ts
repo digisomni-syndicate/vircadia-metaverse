@@ -1,10 +1,9 @@
-import { HooksObject } from '@feathersjs/feathers';
 import * as feathersAuthentication from '@feathersjs/authentication';
 const { authenticate } = feathersAuthentication.hooks;
 import requestSuccess from '../../hooks/requestSuccess';
 import  requestFail  from '../../hooks/requestFail';
 import checkAccessToAccount from '../../hooks/checkAccess';
-import config from '../../appconfig';
+import config from '../../appConfig';
 import { Perm } from '../../utils/Perm';
 
 export default {

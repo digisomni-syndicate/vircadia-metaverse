@@ -1,4 +1,4 @@
-export interface MetaverseInfoModel {
+export interface MetaverseInfoInterface {
     metaverse_name: string;
     metaverse_nick_name: string;
     metaverse_url: string;

@@ -1,4 +1,4 @@
-export interface PlaceModel {
+export interface PlaceInterface {
     id: string; // globally unique place identifier
     name: string; // Human friendly name of the place
     displayName: string; // Human friendly name of the place

@@ -1,10 +1,10 @@
-import { MetaverseInfoModel } from './../interfaces/MetaverseInfo';
-import config from '../appconfig';
+import { MetaverseInfoInterface } from '../common/interfaces/MetaverseInfo';
+import config from '../appConfig';
 import {IsNotNullOrEmpty, readInJSON } from '../utils/Misc';
 
 export const PublicRoutesController = ()=>{
     const metaverseInfo = async(req:any,res:any) => {
-        const response:MetaverseInfoModel = {
+        const response:MetaverseInfoInterface = {
             metaverse_name:config.metaverse.metaverseName,
             metaverse_nick_name: config.metaverse.metaverseNickName,
             ice_server_url: config.metaverse.defaultIceServerUrl ,

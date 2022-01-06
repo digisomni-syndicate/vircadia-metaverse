@@ -1,20 +1,34 @@
-import { DatabaseServiceOptions } from './../../dbservice/DatabaseServiceOptions';
-import { DatabaseService } from './../../dbservice/DatabaseService';
-import { DomainModel } from './../../interfaces/DomainModel';
-import { AccountModel } from '../../interfaces/AccountModel';
-import config from '../../appconfig';
-import { Availability } from '../../utils/sets/Availability';
+import { DatabaseServiceOptions } from '../../common/dbservice/DatabaseServiceOptions';
+import { DatabaseService } from '../../common/dbservice/DatabaseService';
+import { DomainInterface } from '../../common/interfaces/DomainInterface';
+import { AccountInterface } from '../../common/interfaces/AccountInterface';
+import config from '../../appConfig';
+import { Availability } from '../../common/sets/Availability';
 import { Params, Id } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { buildAccountProfile } from '../../responsebuilder/accountsBuilder';
+import { buildAccountProfile } from '../../common/responsebuilder/accountsBuilder';
 import { IsNotNullOrEmpty } from '../../utils/Misc';
 import { messages } from '../../utils/messages';
-import { buildPaginationResponse,buildSimpleResponse } from '../../responsebuilder/responseBuilder';
+import { buildPaginationResponse,buildSimpleResponse } from '../../common/responsebuilder/responseBuilder';
 
 export class Profiles extends DatabaseService {
     constructor(options: Partial<DatabaseServiceOptions>, app: Application) {
         super(options, app);
     }
+
+    /**
+   * Returns the Profile
+   *
+   * @remarks
+   * This method is part of the get list of profile 
+   * Request Type - GET
+   * End Point - API_URL/profiles?per_page=10&page=1
+   * 
+   * @param per_page - page size
+   * @param page - page number
+   * @returns - Paginated profiles { data:{profiles:[{...},{...}]},current_page:1,per_page:10,total_pages:1,total_entries:5}
+   * 
+   */
 
     async find(params?: Params): Promise<any> {
         const perPage = parseInt(params?.query?.per_page) || 10;
@@ -32,10 +46,10 @@ export class Profiles extends DatabaseService {
             },
         });
 
-        const accounts: AccountModel[] = accountData.data as Array<AccountModel>;
+        const accounts: AccountInterface[] = accountData.data as Array<AccountInterface>;
         
 
-        const domainIds = (accounts as Array<AccountModel>)
+        const domainIds = (accounts as Array<AccountInterface>)
             ?.map((item) => item.locationDomainId)
             .filter(
                 (value, index, self) =>
@@ -49,19 +63,32 @@ export class Profiles extends DatabaseService {
 
         const profiles: Array<any> = [];
 
-        (accounts as Array<AccountModel>)?.forEach(async (element) => {
-            let domainModel: DomainModel | undefined;
+        (accounts as Array<AccountInterface>)?.forEach(async (element) => {
+            let DomainInterface: DomainInterface | undefined;
             for (const domain of domains) {
                 if (domain && domain.id === element.locationDomainId) {
-                    domainModel = domain;
+                    DomainInterface = domain;
                     break;
                 }
             }
-            profiles.push(await buildAccountProfile(element, domainModel));
+            profiles.push(await buildAccountProfile(element, DomainInterface));
         });
         return Promise.resolve(buildPaginationResponse({ profiles },page,perPage,Math.ceil(accountData.total/perPage),accountData.total));
     }
 
+    /**
+   * Returns the Profile 
+   *
+   * @remarks
+   * This method is part of the get profile
+   * Request Type - GET
+   * End Point - API_URL/profiles/{profileId}
+   * Access - Public, Owner, Admin
+   *  
+   * @param ProfileId - Profile id (Url param)
+   * @returns - Profile { data:{profiles{...}}}
+   * 
+   */
     async get(id: Id): Promise<any> {
         const account = await this.getData(config.dbCollections.accounts, id);
 
@@ -70,11 +97,11 @@ export class Profiles extends DatabaseService {
                 config.dbCollections.domains,
                 { id: { $eq: account.locationDomainId } }
             );
-            let domainModel: any;
+            let DomainInterface: any;
             if (IsNotNullOrEmpty(domains)) {
-                domainModel = domains[0];
+                DomainInterface = domains[0];
             }
-            const profile = await buildAccountProfile(account, domainModel);
+            const profile = await buildAccountProfile(account, DomainInterface);
             return Promise.resolve(buildSimpleResponse({ profile }));
         } else {
             throw new Error(messages.common_messages_target_profile_notfound);
