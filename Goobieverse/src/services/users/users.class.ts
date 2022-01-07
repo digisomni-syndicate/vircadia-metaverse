@@ -12,11 +12,13 @@ import { SArray } from '../../utils/vTypes';
 import { sendEmail } from '../../utils/mail';
 import path from 'path';
 import fsPromises from 'fs/promises';
+
 import { buildUserInfo } from '../../common/responsebuilder/accountsBuilder';
 import { RequestInterface } from '../../common/interfaces/RequestInterface';
 import { buildSimpleResponse,buildPaginationResponse } from '../../common/responsebuilder/responseBuilder';
 import { extractLoggedInUserFromParams } from '../auth/auth.utils';
 import { dateWhenNotOnline, couldBeDomainId,isAdmin } from '../../utils/Utils';
+import { messages } from '../../utils/messages';
 
 
 export class Users extends DatabaseService {
@@ -180,22 +182,22 @@ export class Users extends DatabaseService {
                                     );
                                 }
                             } else {
-                                throw new Error('Send valid Email address');
-                            }
+                                throw new Error(messages.common_messages_email_validation_error);
+                            } 
                         } else {
-                            throw new Error('Could not create account');
+                            throw new Error(messages.common_messages_could_not_create_account);
                         }
                     } else {
-                        throw new Error('Email already exists');
+                        throw new Error(messages.common_messages_user_email_link_error);
                     }
                 } else {
-                    throw new Error('Account already exists');
+                    throw new Error(messages.common_messages_account_already_exists);
                 }
             } else {
-                throw new Error('Badly formatted username');
+                throw new Error(messages.common_messages_badly_formed_username);
             }
         } else {
-            throw new Error('Badly formatted request');
+            throw new Error(messages.common_messages_badly_formed_request);
         }
     }
 

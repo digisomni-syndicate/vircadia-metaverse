@@ -34,6 +34,9 @@ const server = {
     storageProvider: process.env.STORAGE_PROVIDER || 'local',
 };
 
+/*
+* Email
+*/
 const email = { 
     host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
     port: process.env.SMTP_PORT ?? '465',

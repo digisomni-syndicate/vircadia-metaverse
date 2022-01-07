@@ -8,6 +8,7 @@ import { AccountInterface } from '../../common/interfaces/AccountInterface';
 import { buildAccountInfo } from '../../common/responsebuilder/accountsBuilder';
 import { buildPaginationResponse } from '../../common/responsebuilder/responseBuilder';
 import { extractLoggedInUserFromParams } from '../auth/auth.utils';
+import { messages } from '../../utils/messages';
 
 export class Connections extends DatabaseService {
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,7 +16,21 @@ export class Connections extends DatabaseService {
         super(options, app);
         this.app = app;
     }
-  
+
+    /**
+   * POST Connection
+   *
+   * @remarks
+   * This method is part of the POST connection
+   * Request Type - POST
+   * End Point - API_URL/connections
+   * 
+   * @requires -authentication
+   * @param requestBody - {"username": stringUsername}
+   * @returns - {status: 'success'} or { status: 'failure', message: 'message'}
+   * 
+   */
+    
     async create(data: any, params?: any): Promise<any> {
         if (data && data.username) {
             const loginUser = extractLoggedInUserFromParams(params);
@@ -25,12 +40,27 @@ export class Connections extends DatabaseService {
             if (IsNotNullOrEmpty(addUserData)) {
                 return Promise.resolve({});
             } else {
-                return Response.error('cannot add connections this way');
+                return Response.error(messages.common_messages_cannot_add_connections_this_way);
             }
         } else {
-            return Response.error('Badly formed request');
+            return Response.error(messages.common_messages_badly_formed_request);
         }
     }
+
+
+    /**
+   * Delete Connection
+   *
+   * @remarks
+   * This method is part of the delete connection
+   * Request Type - DELETE
+   * End Point - API_URL/connections/{username}
+   * 
+   * @requires @param acct -username (URL param)
+   * @requires -authentication
+   * @returns - {status: 'success'} or { status: 'failure', message: 'message'}
+   * 
+   */
 
     async remove(id: string, params?: any): Promise<any> {
         const loginUser = extractLoggedInUserFromParams(params);
@@ -44,9 +74,23 @@ export class Connections extends DatabaseService {
             await this.patchData(config.dbCollections.accounts,loginUser.id,newParticularUserData);
             return Promise.resolve({});
         } else {
-            throw new Error('Not logged in');
+            throw new Error(messages.common_messages_not_logged_in);
         }
     }
+
+
+    /**
+   * GET Connection
+   *
+   * @remarks
+   * This method is part of the get list of users and their connection
+   * Request Type - GET
+   * End Point - API_URL/connections
+   * 
+   * @requires -authentication
+   * @returns - { data:{user:[{...},{...}]},,current_page:1,per_page:10,total_pages:1,total_entries:5}}, or { status: 'failure', message: 'message'}
+   * 
+   */
     
     async find(params?: any): Promise<any> {
         const perPage = parseInt(params?.query?.per_page) || 10;
@@ -56,7 +100,6 @@ export class Connections extends DatabaseService {
         const usersData = await this.findData(config.dbCollections.accounts, {
             query: {
                 accountIsActive: true,
-                $select: ['username','connections'],
                 $skip: skip,
                 $limit: perPage,
             },
@@ -64,12 +107,12 @@ export class Connections extends DatabaseService {
       
         const userList:AccountInterface[] = usersData.data;  
                 
-        const user: Array<any> = [];
+        const users: Array<any> = [];
         (userList as Array<AccountInterface>)?.forEach(async (element) => {
-            user.push(await buildAccountInfo(element));
+            users.push(await buildAccountInfo(element));
         });
       
-        return Promise.resolve(buildPaginationResponse({ user },page,perPage,Math.ceil(usersData.total/perPage),usersData.total));
+        return Promise.resolve(buildPaginationResponse({ users },page,perPage,Math.ceil(usersData.total/perPage),usersData.total));
     }
 
 

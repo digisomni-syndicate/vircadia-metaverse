@@ -1,5 +1,6 @@
 import { DatabaseServiceOptions } from '../../common/dbservice/DatabaseServiceOptions';
 import { DatabaseService } from '../../common/dbservice/DatabaseService';
+
 import { Application } from '../../declarations'; 
 import config from '../../appConfig';
 export class Auth extends DatabaseService {
