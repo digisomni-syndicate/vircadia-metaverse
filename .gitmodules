@@ -1,0 +1,3 @@
+[submodule "vircadia-metaverse-v2"]
+	path = vircadia-metaverse-v2
+	url = git@github.com:digisomni-syndicate/vircadia-metaverse-v2.git
