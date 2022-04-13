@@ -24,3 +24,10 @@ See https://en.wikipedia.org/wiki/Iamus .
 [NodeJS]: https://nodejs.org/
 [ExpressJS]: https://expressjs.com/
 [TypeScript]: https://www.typescriptlang.org/
+
+
+## Clone Repository with sub modules
+
+```
+git clone --recurse-submodules git@github.com:digisomni-syndicate/vircadia-metaverse.git
+```
